@@ -1,0 +1,11 @@
+services:
+  chip-lab-warmer:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "3000:3000"
+    volumes:
+      - chip-lab-warmer-data:/app/data
+volumes:
+  chip-lab-warmer-data:
