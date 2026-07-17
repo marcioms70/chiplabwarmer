@@ -16,7 +16,7 @@ Painel de laboratório para registrar e disparar conversas de teste entre númer
 3. Adicione volume persistente para `/app/data`.
 4. Faça o deploy e associe domínio HTTPS.
 5. Teste em modo simulação com dois números próprios.
-6. Para cada instância Evolution, cadastre uma chave no Coolify. Exemplo: instância `clara-whats` usa `EVOLUTION_API_KEY_CLARA_WHATS`.
+6. Cadastre somente a URL base da Evolution no Coolify. A chave de cada instância é informada no próprio cadastro do chip e não é exibida novamente pelo painel.
 7. Após validar, defina `ENABLE_DELIVERY=true` e faça novo deploy.
 
 A integração Evolution usa `POST /message/sendText/{instance}` com header `apikey` da própria instância. Confirme o endpoint da sua instalação antes da ativação.
