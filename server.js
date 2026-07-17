@@ -9,7 +9,6 @@ const dataFile = process.env.DATA_FILE || path.resolve('data/state.json');
 const enabled = process.env.ENABLE_DELIVERY === 'true';
 const adminToken = process.env.ADMIN_TOKEN;
 if (!adminToken || adminToken.length < 16) console.warn('WARNING: configure ADMIN_TOKEN with at least 16 characters.');
-
 const defaults = { participants: [], jobs: [], logs: [] };
 function load() { try { return { ...defaults, ...JSON.parse(fs.readFileSync(dataFile, 'utf8')) }; } catch { return structuredClone(defaults); } }
 function save(state) { fs.mkdirSync(path.dirname(dataFile), { recursive: true }); fs.writeFileSync(dataFile, JSON.stringify(state, null, 2)); }
@@ -31,9 +30,11 @@ app.post('/api/participants/:id/approve', auth, (req, res) => { const s = load()
 app.delete('/api/participants/:id', auth, (req, res) => { const s=load(); s.participants=s.participants.filter(x=>x.id!==req.params.id); save(s); res.json({ ok:true }); });
 async function deliver(job, from, to) {
   const instance = from.instance || process.env.EVOLUTION_INSTANCE;
-  if (!process.env.EVOLUTION_BASE_URL || !process.env.EVOLUTION_API_KEY || !instance) throw new Error('Configure EVOLUTION_BASE_URL, EVOLUTION_API_KEY e a instância do chip remetente.');
+  const keyName = `EVOLUTION_API_KEY_${String(instance || '').toUpperCase().replace(/[^A-Z0-9]/g, '_')}`;
+  const apiKey = process.env[keyName];
+  if (!process.env.EVOLUTION_BASE_URL || !instance || !apiKey) throw new Error(`Configure EVOLUTION_BASE_URL, a instância remetente e ${keyName}.`);
   const url = `${process.env.EVOLUTION_BASE_URL}/message/sendText/${encodeURIComponent(instance)}`;
-  const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': process.env.EVOLUTION_API_KEY || '' }, body: JSON.stringify({ number: to.number, text: job.message, delay: 0 }) });
+  const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'apikey': apiKey }, body: JSON.stringify({ number: to.number, text: job.message, delay: 0 }) });
   if (!response.ok) throw new Error(`Evolution respondeu HTTP ${response.status}`);
 }
 app.post('/api/jobs', auth, async (req, res) => {
